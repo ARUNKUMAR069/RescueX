@@ -481,18 +481,38 @@ class PreventionService:
                 title="Use air purifiers",
                 description="If available, use HEPA air purifiers indoors",
                 urgency="Medium"
-            ),
-            PreventionMeasure(
-                title="Stay hydrated",
-                description="Drink plenty of water to help your body filter toxins",
-                urgency="Medium"
-            ),
-            PreventionMeasure(
-                title="Keep medications accessible",
-                description="If you have asthma or respiratory conditions, keep medications handy",
-                urgency="High"
             )
         ]
+        
+        # Add gas leakage specific measures for severe air quality alerts
+        if severity in ["Severe", "Extreme"]:
+            preventions.append(PreventionMeasure(
+                title="Check for Gas Leaks",
+                description="If you smell gas or suspect a leak, leave the area immediately and call emergency services from a safe distance",
+                urgency="Critical"
+            ))
+            preventions.append(PreventionMeasure(
+                title="Evacuate Area if Advised",
+                description="Follow emergency evacuation orders if issued by authorities",
+                urgency="Critical"
+            ))
+            preventions.append(PreventionMeasure(
+                title="Avoid Creating Sparks",
+                description="Don't use electrical devices, light matches, or create any flames if gas leak is suspected",
+                urgency="Critical"
+            ))
+            preventions.append(PreventionMeasure(
+                title="Seek Medical Attention",
+                description="If experiencing symptoms like headache, dizziness, nausea, or difficulty breathing, seek medical help immediately",
+                urgency="High"
+            ))
+        
+        # Add more detailed prevention measures for all severity levels
+        preventions.append(PreventionMeasure(
+            title="Keep medications accessible",
+            description="If you have asthma or respiratory conditions, keep medications handy",
+            urgency="High"
+        ))
         
         if severity in ["Severe", "Extreme"]:
             preventions.append(PreventionMeasure(

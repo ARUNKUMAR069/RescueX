@@ -17,7 +17,7 @@ class WeatherService:
                 params={
                     "key": WEATHER_API_KEY,
                     "q": location,
-                    "aqi": "yes"  # Include air quality data
+                    "aqi": "yes"  # Ensure air quality data is requested
                 }
             )
             
@@ -34,15 +34,34 @@ class WeatherService:
             # Extract weather data
             current = data["current"]
             
+            # Get AQI data
+            air_quality_index = 0
+            if "air_quality" in current:
+                # US EPA standard AQI, if available
+                if "us-epa-index" in current["air_quality"]:
+                    air_quality_index = current["air_quality"]["us-epa-index"]
+                # Fallback to PM2.5 to calculate approximate AQI
+                elif "pm2_5" in current["air_quality"]:
+                    pm2_5 = current["air_quality"]["pm2_5"]
+                    # Simple approximation
+                    if pm2_5 <= 12:
+                        air_quality_index = int(pm2_5 * 4.16)  # 0-50 scale for 0-12 PM2.5
+                    elif pm2_5 <= 35.4:
+                        air_quality_index = int(50 + (pm2_5 - 12) * 2.1)  # 51-100 scale
+                    elif pm2_5 <= 55.4:
+                        air_quality_index = int(100 + (pm2_5 - 35.4) * 2.5)  # 101-150 scale
+                    else:
+                        air_quality_index = 150 + min(300, int(pm2_5 - 55.4) * 3)  # 151+ scale
+            
             # Create WeatherData object with additional fields needed for disaster prediction
             weather_data = WeatherData(
                 temperature=current["temp_c"],
                 humidity=current["humidity"],
                 precipitation=current["precip_mm"],
-                wind_speed=current["wind_kph"] / 3.6,  # Convert km/h to m/s
+                wind_speed=current["wind_kph"],
                 pressure=current["pressure_mb"],
+                air_quality_index=air_quality_index,
                 precipitation_intensity=current["precip_mm"] / 3,  # Estimated intensity
-                air_quality_index=current.get("air_quality", {}).get("us-epa-index", 0),
                 consecutive_dry_days=0,  # Default value
                 soil_saturation=50,  # Default value 
                 temperature_gradient=5,  # Default value
@@ -51,7 +70,7 @@ class WeatherService:
                 river_level_percent=50,  # Default value
                 urban_density=50  # Default value
             )
-
+            
             # Add extra fields if available in the API response
             extra_data = {}
             if "uv" in current:

@@ -344,25 +344,33 @@ class DisasterPredictor:
         # Advanced air quality evaluation
         if hasattr(weather_data, 'air_quality_index') and weather_data.air_quality_index > 0:
             if weather_data.air_quality_index > 300:
+                # Potential gas leakage or industrial disaster
                 predictions.append(DisasterPrediction(
-                    disaster_type="Hazardous Air Quality Emergency",
+                    disaster_type="Severe Air Quality Alert",
                     probability=0.95,
                     severity="Extreme",
-                    description="Extremely dangerous air quality levels pose immediate health threats to all"
+                    description="Hazardous air quality detected. Possible chemical release, gas leakage, or extreme pollution event."
                 ))
             elif weather_data.air_quality_index > 200:
                 predictions.append(DisasterPrediction(
-                    disaster_type="Very Unhealthy Air Quality",
-                    probability=0.9,
+                    disaster_type="Air Quality Emergency",
+                    probability=0.85,
                     severity="Severe",
-                    description="Very poor air quality may cause serious health effects for everyone"
+                    description="Very unhealthy air quality. Stay indoors with filtered air if possible."
                 ))
             elif weather_data.air_quality_index > 150:
                 predictions.append(DisasterPrediction(
-                    disaster_type="Unhealthy Air Quality",
-                    probability=0.8,
+                    disaster_type="Air Quality Warning",
+                    probability=0.75,
                     severity="High",
-                    description="Unhealthy air quality affects sensitive groups and may affect general population"
+                    description="Unhealthy air quality affecting all populations. Limit outdoor activities."
+                ))
+            elif weather_data.air_quality_index > 100:
+                predictions.append(DisasterPrediction(
+                    disaster_type="Air Quality Advisory",
+                    probability=0.65,
+                    severity="Moderate",
+                    description="Air quality unhealthy for sensitive groups including children, elderly, and those with respiratory conditions."
                 ))
         
         # Default case with confidence assessment

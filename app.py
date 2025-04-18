@@ -102,21 +102,22 @@ async def read_documentation():
         )
 
 @app.get("/api/predict", response_model=PredictionResponse)
-async def predict_disasters(location: str = Query(..., description="City or location name")):
+async def predict_disasters(location: str = Query(..., description="City name or lat,lng coordinates")):
     """
     Get disaster predictions and prevention recommendations for a location
     """
     try:
-        # Apply learning from history - uncomment once you have collected feedback
-        # disaster_predictor.learn_from_history()
+        # Apply learning from history
+        disaster_predictor.learn_from_history()
         
-        # Correct potential spelling errors in location name
-        corrected_location = disaster_predictor.correct_location_name(location)
+        # Check if location is in format "lat,lng"
+        if "," in location and all(c.isdigit() or c in ".-," for c in location):
+            # This is likely a lat,lng format
+            corrected_location = location  # No need to correct coordinates
+        else:
+            # Correct potential spelling errors in location name
+            corrected_location = disaster_predictor.correct_location_name(location)
         
-        # If the location was completely unrecognizable, we use the original but log a warning
-        if corrected_location != location and corrected_location == disaster_predictor.correct_location_name(location):
-            print(f"Warning: Using best guess for unrecognized location '{location}' -> '{corrected_location}'")
-            
         # Fetch weather data for the corrected location
         weather_data = await weather_service.get_weather_data(corrected_location)
         
@@ -128,8 +129,10 @@ async def predict_disasters(location: str = Query(..., description="City or loca
         
         # Create location object
         location_obj = Location(
-            city=corrected_location, 
-            country=weather_data.country if hasattr(weather_data, "country") else None
+            city=weather_data.city if hasattr(weather_data, "city") else corrected_location, 
+            country=weather_data.country if hasattr(weather_data, "country") else None,
+            latitude=weather_data.latitude if hasattr(weather_data, "latitude") else None,
+            longitude=weather_data.longitude if hasattr(weather_data, "longitude") else None
         )
         
         # Save prediction
